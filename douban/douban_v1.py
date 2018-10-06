@@ -2,13 +2,18 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import numpy as np
+import csv
 
 
+# 获取内容
 def get(page):
+    url = 'https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start={}&type=T'
+    offset = 0
     result = []
-    for i in range(1):
-        _url = url.format(page)
-        page += 20
+    err_url = []
+    for i in range(page):
+        _url = url.format(offset)
+        offset += 20
         resp = requests.get(_url)
         if resp.status_code == 200:
             html = resp.text
@@ -26,9 +31,12 @@ def get(page):
                 list_.append(comment)
                 list_.append(star)
                 result.append(list_)
-    return result
+        else:
+            err_url.append(_url)
+    return result, err_url
 
 
+# 根据评分排序
 def _sort(result):
     # 转换成矩阵
     array = np.array(result)
@@ -40,15 +48,19 @@ def _sort(result):
     return sort_list
 
 
+# 保存到csv
 def save(data):
-    f = open('douban.txt', 'a+', encoding="utf-8")
-
-
+    file_csv = open('douban.csv', 'w+', newline='')
+    writer = csv.writer(file_csv)
+    header = ['书名', '评论数', '评分']
+    writer.writerow(header)
+    for book in data:
+        writer.writerow(book)
+    file_csv.close()
 
 
 if __name__ == '__main__':
-    url = 'https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start={}&type=T'
-    page = 0
-    result = get(1)
+    result, err_url = get(10)
     sort_list = _sort(result)
     save(sort_list)
+    print(err_url)
