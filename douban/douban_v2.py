@@ -6,8 +6,6 @@ import csv
 import time
 import threading
 import queue
-import traceback
-import sys
 
 
 # 生成分页URL地址
@@ -21,7 +19,6 @@ def make_url(page):
         offset += 20
     return url_list
 
-
 # 根据评分排序
 def _sort(result):
     # 转换成矩阵
@@ -32,7 +29,6 @@ def _sort(result):
     # 转换回list
     sort_list = np.matrix.tolist(reve_arr)
     return sort_list
-
 
 # 保存到csv
 def save(data):
@@ -46,9 +42,8 @@ def save(data):
         except:
             continue
     file_csv.close()
-    sys.exit()
 
-
+# 请求url，下载html
 def req_page():
     while True:
         try:
@@ -60,6 +55,7 @@ def req_page():
         except:
             break
 
+# 解析html，获取评分
 def get_content():
     if task_html.qsize() > 10:
         while True:
@@ -88,27 +84,25 @@ def get_content():
 
 
 if __name__ == '__main__':
+    # 生成分页url
     url_list = make_url(50)
-    # url 队列
+    # url 队列 (队列1)
     url_task = queue.Queue()
     for url in url_list:
         url_task.put(url)
-
-    # 下载好的html队列
+    # 下载好的html队列 (队列2)
     task_html = queue.Queue()
     # 最终结果列表
     task_res = []
-
     threads = []
     # 获取html线程
     for i in range(5):
         threads.append(threading.Thread(target=req_page))
-
     # 解析html线程
     threads.append(threading.Thread(target=get_content))
-
+    threads.append(threading.Thread(target=get_content))
     for i in threads:
         i.start()
         i.join()
-
+    # 主线程排序保存
     save(_sort(task_res))

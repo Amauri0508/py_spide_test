@@ -5,7 +5,6 @@ import numpy as np
 import csv
 import time
 
-
 # 获取内容
 def get(page):
     url = 'https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start={}&type=T'
